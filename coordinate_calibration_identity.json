@@ -1,0 +1,9 @@
+{
+  "T_drivestudio_from_carla": [
+    [1.0, 0.0, 0.0, 0.0],
+    [0.0, 1.0, 0.0, 0.0],
+    [0.0, 0.0, 1.0, 0.0],
+    [0.0, 0.0, 0.0, 1.0]
+  ],
+  "note": "Initial placeholder only. Replace with the calibrated rigid transform from CARLA world to DriveStudio local world."
+}

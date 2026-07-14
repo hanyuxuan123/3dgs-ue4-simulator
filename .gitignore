@@ -1,0 +1,42 @@
+# Unreal Engine generated files
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+.vs/
+
+# Visual Studio / IDE
+*.sln
+*.suo
+*.opensdf
+*.sdf
+.vscode/
+.idea/
+
+# Python cache
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Logs and experiment outputs
+*.log
+logs/
+outputs/
+results/
+runs/
+wandb/
+
+# Temporary files
+*.tmp
+*.swp
+.DS_Store
+Thumbs.db
+
+# Large datasets/checkpoints: confirm before enabling
+# data/
+# datasets/
+# checkpoints/
+# *.pth
+# *.pt
+# *.ckpt

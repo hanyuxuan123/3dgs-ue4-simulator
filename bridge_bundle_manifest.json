@@ -1,0 +1,43 @@
+{
+  "name": "classlab_3dgs_carla_bridge",
+  "description": "Reusable scripts for the ClassLab OpenDRIVE + DriveStudio 3DGS + CARLA simulator bridge.",
+  "readme": "Tools/gs_carla/SIMULATOR_BRIDGE_README.md",
+  "files": [
+    "Tools/gs_carla/SIMULATOR_BRIDGE_README.md",
+    "Tools/gs_carla/bridge_bundle_manifest.json",
+    "Tools/gs_carla/bundle_bridge_package.py",
+    "Tools/gs_carla/make_3dgs_carla_scene_package.py",
+    "Tools/gs_carla/scene_runtime_external_control.py",
+    "Tools/gs_carla/pose_control_client.py",
+    "Tools/gs_carla/pose_control_signal.py",
+    "Tools/gs_carla/traffic_bbox_projection_from_package.py",
+    "Tools/gs_carla/traffic_bbox_carla_loader.py",
+    "Tools/gs_carla/carla_3dgs_scene_runtime.py",
+    "Tools/gs_carla/carla_xodr_live_3dgs_bridge_with_instances.py",
+    "Tools/gs_carla/carla_xodr_live_3dgs_bridge.py",
+    "Tools/gs_carla/carla_xodr_live_3dgs_scene_package_bridge.py",
+    "Tools/gs_carla/carla_xodr_live_3dgs_modular_bridge.py",
+    "Tools/gs_carla/load_xodr_town_and_dump_poses.py",
+    "Tools/gs_carla/load_xodr_town_with_instances.py",
+    "Tools/gs_carla/render_background_gsplat.py",
+    "Tools/gs_carla/render_aligned_mapping_or_carla_path_gsplat.py",
+    "Tools/gs_carla/export_drivestudio_background.py",
+    "Tools/gs_carla/render_background_point_demo.py",
+    "Tools/gs_carla/render_interpolated_path_gsplat_pygame.py",
+    "Tools/gs_carla/export_instance_bboxes_to_carla_collision.py",
+    "PythonAPI/examples/drivestudio_clear/datasets/classlab/track_classlab_roadlanes_bev.py",
+    "PythonAPI/examples/drivestudio_clear/datasets/classlab/track_classlab_roadlanes_bev_semantic.py",
+    "PythonAPI/examples/drivestudio_clear/datasets/classlab/track_classlab_roadlanes_bev_semantic_mapping_pose.py",
+    "PythonAPI/examples/drivestudio_clear/datasets/classlab/classlab_mapping_pose_semantic_to_xodr.py",
+    "PythonAPI/examples/drivestudio_clear/datasets/classlab/classlab_mapping_pose_semantic_to_xodr_with_connectors.py"
+  ],
+  "optional_data_examples": [
+    "PythonAPI/examples/drivestudio_clear/work_dirs/background_only_demo/classlab_3dgs_carla_scene_package.json",
+    "PythonAPI/examples/drivestudio_clear/work_dirs/background_only_demo/background_gaussians.pth",
+    "PythonAPI/examples/drivestudio_clear/work_dirs/background_only_demo/sky_envlight.pth",
+    "PythonAPI/examples/drivestudio_clear/work_dirs/000_6cams_omnire_ext/instances/instances_info.json",
+    "PythonAPI/examples/drivestudio_clear/data/classlab/roadlane_tracking/frames_250_450_mapping_pose_semantic_4lane_correct/classlab_mapping_pose_semantic_4lane.xodr",
+    "PythonAPI/examples/drivestudio_clear/data/classlab/roadlane_tracking/frames_250_450_mapping_pose_semantic_4lane_correct/corrected_pose_enu.csv"
+  ]
+}
+
