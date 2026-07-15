@@ -32,7 +32,7 @@ from typing import Any
 
 import numpy as np
 
-from load_xodr_town_and_dump_poses import (
+from .load_xodr_town_and_dump_poses import (
     clamp,
     import_carla,
     load_xodr_world,

@@ -8,8 +8,8 @@ import json
 from pathlib import Path
 from typing import Any
 
-import carla_xodr_live_3dgs_bridge_with_instances as base
-from load_xodr_town_with_instances import (
+from . import carla_xodr_live_3dgs_bridge_with_instances as base
+from .load_xodr_town_with_instances import (
     load_instance_tracks,
     spawn_instance_actors,
     update_instance_actors,

@@ -6,8 +6,8 @@ from __future__ import annotations
 import argparse
 from typing import Any
 
-import carla_xodr_live_3dgs_bridge_with_instances as base
-from load_xodr_town_and_dump_poses import nearest_path_index
+from . import carla_xodr_live_3dgs_bridge_with_instances as base
+from .load_xodr_town_and_dump_poses import nearest_path_index
 
 
 class PoseControlSignal:

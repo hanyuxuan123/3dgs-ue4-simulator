@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import runpy
 import shlex
 import sys
 from pathlib import Path
@@ -106,12 +105,13 @@ def main() -> int:
     wrapper_args, _ = parse_wrapper_args(sys.argv[1:])
     passthrough = remove_wrapper_args(sys.argv[1:])
     args = expanded_args(wrapper_args.scene_package, passthrough)
-    target = Path(__file__).with_name("carla_xodr_live_3dgs_bridge_with_instances.py")
+    target_module = "gs_carla.carla_xodr_live_3dgs_bridge_with_instances"
     if wrapper_args.print_expanded_command:
-        print("python " + " ".join(shlex.quote(item) for item in [str(target), *args]))
-    sys.argv = [str(target), *args]
-    runpy.run_path(str(target), run_name="__main__")
-    return 0
+        print("python -m " + " ".join(shlex.quote(item) for item in [target_module, *args]))
+    from . import carla_xodr_live_3dgs_bridge_with_instances as bridge
+
+    sys.argv = [target_module, *args]
+    return bridge.main()
 
 
 if __name__ == "__main__":

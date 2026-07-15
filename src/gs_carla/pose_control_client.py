@@ -12,8 +12,8 @@ import time
 from pathlib import Path
 from types import SimpleNamespace
 
-import carla_xodr_live_3dgs_bridge_with_instances as base
-from load_xodr_town_and_dump_poses import (
+from . import carla_xodr_live_3dgs_bridge_with_instances as base
+from .load_xodr_town_and_dump_poses import (
     clamp,
     core_yaw_to_carla_yaw_deg,
     enu_to_sequence_start_local,

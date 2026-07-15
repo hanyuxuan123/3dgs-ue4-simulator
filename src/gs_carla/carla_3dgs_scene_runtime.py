@@ -13,18 +13,18 @@ from typing import Any
 import numpy as np
 from PIL import Image
 
-import carla_xodr_live_3dgs_bridge_with_instances as base
-from load_xodr_town_and_dump_poses import (
+from . import carla_xodr_live_3dgs_bridge_with_instances as base
+from .load_xodr_town_and_dump_poses import (
     move_spectator,
     path_length,
     pose_dict_to_map_aligned_transform,
     pose_dict_to_transform,
     transform_to_dict,
 )
-from load_xodr_town_with_instances import make_instance_transform, make_local_se2_correction
-from pose_control_signal import PoseControlSignal
-from render_aligned_mapping_or_carla_path_gsplat import mapping_pose_matrix, read_mapping_poses
-from render_background_gsplat import (
+from .load_xodr_town_with_instances import make_instance_transform, make_local_se2_correction
+from .pose_control_signal import PoseControlSignal
+from .render_aligned_mapping_or_carla_path_gsplat import mapping_pose_matrix, read_mapping_poses
+from .render_background_gsplat import (
     Profiler,
     load_background,
     load_intrinsics_from_processed,
@@ -33,7 +33,7 @@ from render_background_gsplat import (
     resolve_device,
     write_video,
 )
-from traffic_bbox_carla_loader import TrafficBBoxCarlaLoader
+from .traffic_bbox_carla_loader import TrafficBBoxCarlaLoader
 
 
 def parse_args() -> argparse.Namespace:

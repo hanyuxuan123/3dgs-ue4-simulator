@@ -11,7 +11,7 @@ from pathlib import Path
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--manifest", type=Path, default=Path("Tools/gs_carla/bridge_bundle_manifest.json"))
+    parser.add_argument("--manifest", type=Path, default=Path(__file__).with_name("bridge_bundle_manifest.json"))
     parser.add_argument("--output-dir", required=True, type=Path)
     parser.add_argument("--repo-root", type=Path, default=Path.cwd())
     parser.add_argument("--include-data-examples", action="store_true")

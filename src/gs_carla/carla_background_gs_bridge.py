@@ -11,7 +11,7 @@ from pathlib import Path
 
 import numpy as np
 
-from render_background_gsplat import load_background, load_sky, render, resolve_device
+from .render_background_gsplat import load_background, load_sky, render, resolve_device
 
 
 def parse_args() -> argparse.Namespace:

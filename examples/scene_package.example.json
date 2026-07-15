@@ -1,0 +1,20 @@
+{
+  "name": "classlab_3dgs_carla_example",
+  "description": "Example scene package. Replace every path with local assets before running.",
+  "assets": {
+    "xodr": "assets/local/maps/classlab_mapping_pose_semantic_4lane.xodr",
+    "background": "assets/local/3dgs/background_gaussians.pth",
+    "sky": "assets/local/3dgs/sky_envlight.pth",
+    "processed_scene": "assets/local/processed/2025-07-17-17-33-26",
+    "mapping_pose": "assets/local/raw/2025-07-17-17-33-26/result/mapping/mapping_pose.txt",
+    "core_pose_csv": "assets/local/roadlane_tracking/corrected_pose_enu.csv",
+    "instances_info": "assets/local/instances/instances_info.json"
+  },
+  "values": {
+    "camera": 0,
+    "sequence_origin_frame": 0,
+    "processed_origin_frame": 0,
+    "instance_origin_sequence_frame": 300,
+    "instance_transform_mode": "mapping-absolute"
+  }
+}

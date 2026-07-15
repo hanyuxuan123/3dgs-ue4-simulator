@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gs-carla"
+version = "0.1.0"
+description = "CARLA + DriveStudio 3D Gaussian Splatting bridge tools"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "numpy>=1.23",
+  "pillow>=9.0",
+  "scipy>=1.10",
+  "imageio>=2.31",
+  "imageio-ffmpeg>=0.4",
+  "opencv-python>=4.8",
+  "pygame>=2.5",
+]
+
+[project.optional-dependencies]
+gpu-cu118 = [
+  "torch==2.4.0+cu118",
+  "torchvision==0.19.0+cu118",
+  "gsplat==1.5.3",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+gs_carla = ["bridge_bundle_manifest.json"]

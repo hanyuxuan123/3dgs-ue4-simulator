@@ -41,9 +41,9 @@ CARLA 负责：
 相关脚本主要在：
 
 ```text
-Tools/gs_carla/scene_runtime_external_control.py
-Tools/gs_carla/load_xodr_town_and_dump_poses.py
-Tools/gs_carla/load_xodr_town_with_instances.py
+src/gs_carla/scene_runtime_external_control.py
+src/gs_carla/load_xodr_town_and_dump_poses.py
+src/gs_carla/load_xodr_town_with_instances.py
 ```
 
 ### 2. 3DGS 视觉世界
@@ -58,9 +58,9 @@ Tools/gs_carla/load_xodr_town_with_instances.py
 相关脚本：
 
 ```text
-Tools/gs_carla/export_drivestudio_background.py
-Tools/gs_carla/render_background_gsplat.py
-Tools/gs_carla/render_aligned_mapping_or_carla_path_gsplat.py
+src/gs_carla/export_drivestudio_background.py
+src/gs_carla/render_background_gsplat.py
+src/gs_carla/render_aligned_mapping_or_carla_path_gsplat.py
 ```
 
 ### 3. 控制与标注桥接
@@ -199,8 +199,8 @@ python PythonAPI/examples/drivestudio_clear/datasets/classlab/classlab_mapping_p
 核心脚本：
 
 ```text
-Tools/gs_carla/export_drivestudio_background.py
-Tools/gs_carla/render_background_gsplat.py
+src/gs_carla/export_drivestudio_background.py
+src/gs_carla/render_background_gsplat.py
 ```
 
 需要得到的运行资产：
@@ -239,13 +239,13 @@ CARLA ego transform
 脚本：
 
 ```text
-Tools/gs_carla/make_3dgs_carla_scene_package.py
+src/gs_carla/make_3dgs_carla_scene_package.py
 ```
 
 命令：
 
 ```bash
-python Tools/gs_carla/make_3dgs_carla_scene_package.py \
+python -m gs_carla.make_3dgs_carla_scene_package \
   --output PythonAPI/examples/drivestudio_clear/work_dirs/background_only_demo/classlab_3dgs_carla_scene_package.json \
   --name classlab_2025_07_17_3dgs_carla \
   --description "ClassLab OpenDRIVE + DriveStudio 3DGS background + replayed instances + corrected ENU core pose window" \
@@ -294,7 +294,7 @@ package 里的字段含义：
 脚本：
 
 ```text
-Tools/gs_carla/scene_runtime_external_control.py
+src/gs_carla/scene_runtime_external_control.py
 ```
 
 这个脚本是当前 simulator bridge 的主 runtime。它负责：
@@ -310,7 +310,7 @@ Tools/gs_carla/scene_runtime_external_control.py
 推荐命令：
 
 ```bash
-python Tools/gs_carla/scene_runtime_external_control.py \
+python -m gs_carla.scene_runtime_external_control \
   --scene-package PythonAPI/examples/drivestudio_clear/work_dirs/background_only_demo/classlab_3dgs_carla_scene_package.json \
   --control-host 127.0.0.1 \
   --control-port 29001 \
@@ -365,13 +365,13 @@ runtime 参数分组：
 脚本：
 
 ```text
-Tools/gs_carla/pose_control_client.py
+src/gs_carla/pose_control_client.py
 ```
 
 命令：
 
 ```bash
-python Tools/gs_carla/pose_control_client.py \
+python -m gs_carla.pose_control_client \
   --scene-package PythonAPI/examples/drivestudio_clear/work_dirs/background_only_demo/classlab_3dgs_carla_scene_package.json \
   --control-host 127.0.0.1 \
   --control-port 29001 \
@@ -419,7 +419,7 @@ python Tools/gs_carla/pose_control_client.py \
 脚本：
 
 ```text
-Tools/gs_carla/traffic_bbox_projection_from_package.py
+src/gs_carla/traffic_bbox_projection_from_package.py
 ```
 
 这个脚本有两种模式。
@@ -429,7 +429,7 @@ Tools/gs_carla/traffic_bbox_projection_from_package.py
 读取 runtime 输出的 `external_control_path.json`，按照实际渲染相机轨迹投影 traffic 2D bbox。
 
 ```bash
-python Tools/gs_carla/traffic_bbox_projection_from_package.py \
+python -m gs_carla.traffic_bbox_projection_from_package \
   --scene-package PythonAPI/examples/drivestudio_clear/work_dirs/background_only_demo/classlab_3dgs_carla_scene_package.json \
   --output PythonAPI/examples/drivestudio_clear/work_dirs/background_only_demo/traffic_bbox_projection_runtime_315_360.json \
   --frame-start 315 \
@@ -444,7 +444,7 @@ python Tools/gs_carla/traffic_bbox_projection_from_package.py \
 让第三个脚本连接正在运行的 CARLA world，单独负责 traffic actors 的 replay 和 bbox 输出。
 
 ```bash
-python Tools/gs_carla/traffic_bbox_projection_from_package.py \
+python -m gs_carla.traffic_bbox_projection_from_package \
   --scene-package PythonAPI/examples/drivestudio_clear/work_dirs/background_only_demo/classlab_3dgs_carla_scene_package.json \
   --output PythonAPI/examples/drivestudio_clear/work_dirs/background_only_demo/live_traffic_bboxes_315_360.json \
   --instance-output PythonAPI/examples/drivestudio_clear/work_dirs/background_only_demo/live_traffic_instances_315_360.csv \
@@ -489,7 +489,7 @@ python Tools/gs_carla/traffic_bbox_projection_from_package.py \
 
 ## Tools 目录里的代码对应关系
 
-当前 `Tools/gs_carla` 里和 bridge 直接相关的脚本关系如下：
+当前 `src/gs_carla` 里和 bridge 直接相关的脚本关系如下：
 
 | 文件 | 角色 | 被谁使用 |
 | --- | --- | --- |
@@ -527,33 +527,33 @@ make_3dgs_carla_scene_package.py
 我已经添加了代码包清单：
 
 ```text
-Tools/gs_carla/bridge_bundle_manifest.json
+src/gs_carla/bridge_bundle_manifest.json
 ```
 
 以及打包脚本：
 
 ```text
-Tools/gs_carla/bundle_bridge_package.py
+src/gs_carla/bundle_bridge_package.py
 ```
 
 打包命令：
 
 ```bash
-python Tools/gs_carla/bundle_bridge_package.py \
+python -m gs_carla.bundle_bridge_package \
   --output-dir /tmp/classlab_3dgs_carla_bridge_bundle
 ```
 
 如果要连示例数据路径里的文件也尝试复制：
 
 ```bash
-python Tools/gs_carla/bundle_bridge_package.py \
+python -m gs_carla.bundle_bridge_package \
   --output-dir /tmp/classlab_3dgs_carla_bridge_bundle \
   --include-data-examples
 ```
 
 这个 bundle 会复制：
 
-- `Tools/gs_carla` 下的 runtime、controller、renderer、traffic、package 工具
+- `src/gs_carla` 下的 runtime、controller、renderer、traffic、package 工具
 - `PythonAPI/examples/drivestudio_clear/datasets/classlab` 下的 BEV 建图和 XODR 生成工具
 - 本 README
 - bundle manifest

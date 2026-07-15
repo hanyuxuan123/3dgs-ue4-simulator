@@ -1,4 +1,4 @@
-# Unreal Engine generated files
+# Unreal Engine / CARLA generated files
 Binaries/
 DerivedDataCache/
 Intermediate/
@@ -16,8 +16,12 @@ Saved/
 # Python cache
 __pycache__/
 *.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 .venv/
 venv/
+env/
 
 # Logs and experiment outputs
 *.log
@@ -26,6 +30,9 @@ outputs/
 results/
 runs/
 wandb/
+work_dirs/
+debug/
+tmp/
 
 # Temporary files
 *.tmp
@@ -33,10 +40,35 @@ wandb/
 .DS_Store
 Thumbs.db
 
-# Large datasets/checkpoints: confirm before enabling
-# data/
-# datasets/
-# checkpoints/
-# *.pth
-# *.pt
-# *.ckpt
+# Large datasets, models, generated assets
+data/
+datasets/
+checkpoints/
+weights/
+assets/local/
+*.pth
+*.pt
+*.ckpt
+*.onnx
+*.ply
+*.bin
+*.npz
+*.npy
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.png
+*.jpg
+*.jpeg
+
+# Local machine configuration
+.env
+*.local.json
+
+# Keep small examples/templates tracked.
+!examples/
+!examples/**/
+!examples/**/*.json
+!examples/**/*.md
+!coordinate_calibration_identity.json

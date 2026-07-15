@@ -1,183 +1,185 @@
-# DriveStudio GS 到 CARLA 背景渲染 Demo
+# 3DGS-CARLA Simulator Bridge
 
-本文件夹包含一个最小化的桥接实验，用于在不依赖 NuRec 的情况下使用 DriveStudio checkpoint。当前阶段只关注背景：从 DriveStudio checkpoint 中导出 `Background` 高斯和 `Sky` 环境贴图，先在 processed camera 上验证坐标，再通过 CARLA bridge 读取 hero pose 做背景渲染。Rigid nodes 和动态阴影暂时不进入第一版闭环。
+这个仓库用于把 DriveStudio/3D Gaussian Splatting 场景接入 CARLA：CARLA 负责道路、车辆、traffic actor 和物理仿真，DriveStudio/3DGS 负责根据 CARLA pose 渲染相机画面。当前代码已经整理成 Python package，源码在 `src/gs_carla/`。
 
-## 当前目标
+更详细的说明：
 
-第一阶段用于检查 DriveStudio 的背景 Gaussian 世界坐标是否与已处理的相机坐标系统对齐，然后把 CARLA hero/camera pose 转到 DriveStudio local world。当前 `gussian-sim` conda 环境已经有 `torch 2.4.0+cu118` 和 `gsplat 1.5.3`，但运行真实渲染时仍要求当前会话能访问 CUDA GPU。
+- GitHub 发布、环境配置、外部资产放置、部署步骤：见 [docs/GITHUB_DEPLOY.md](docs/GITHUB_DEPLOY.md)
+- 完整 CARLA + 3DGS + traffic + external control 数据流：见 [docs/SIMULATOR_BRIDGE_README.md](docs/SIMULATOR_BRIDGE_README.md)
 
-## 文件说明
-
-### `export_drivestudio_background.py`
-
-加载 DriveStudio 的 `checkpoint_final.pth`，只提取 `models["Background"]`，并将 Gaussian tensor 保存为 `background_gaussians.pth`。该脚本会保留原始训练参数，例如 log-scales、raw quaternions、SH features 和 opacity logits。同时会写出 `metadata.json`，并可选导出一个降采样后的预览 PLY 文件。
-
-### `render_background_point_demo.py`
-
-使用与 DriveStudio 相同的 local-world 对齐方式，将导出的背景 Gaussian 中心点投影到一帧已处理的相机图像中。这个脚本只是一个坐标调试渲染器，并不是真正的 Gaussian splatting。它会输出点投影图像，并可选生成与原始相机图像叠加的 overlay，用于检查坐标轴、尺度和相机朝向是否正确。
-
-### `render_background_gsplat.py`
-
-使用 `gsplat.rendering.rasterization` 对导出的 DriveStudio background gaussians 做真实 3DGS 渲染。脚本会激活 log-scale、opacity logit、raw quaternion 和 SH degree 3 features，并支持 processed scene pose 或外部 JSON camera pose。它也能读取 `sky_envlight.pth`，按像素 viewdir 从 DriveStudio `EnvLight` cubemap 采样天空，再用 `rgb_gaussians + rgb_sky * (1-alpha)` 混合。
-
-### `carla_background_gs_bridge.py`
-
-连接 CARLA server，必要时从 `.xodr` 生成 CARLA world，查找 `role_name=hero` 的车辆，读取车辆 transform 和相机外参，然后通过 `T_drivestudio_from_carla` 转成 DriveStudio camera-to-world。最后调用 `render_background_gsplat.py` 中的 renderer 输出一帧背景 GS 图像。
-
-### `coordinate_calibration_identity.json`
-
-默认的坐标标定占位文件，只包含 identity `T_drivestudio_from_carla`。它不能代表真实对齐结果，只用于跑通接口。后续需要根据道路几何、ego 轨迹或人工选点估计 CARLA world 到 DriveStudio local world 的刚体变换，并替换这个矩阵。
-
-## 已生成的 Demo 输出
-
-当前 demo 输出写入到了：
+## 仓库结构
 
 ```text
-PythonAPI/examples/drivestudio_clear/work_dirs/background_only_demo/
+3dgs-ue4-simulator/
+  README.md
+  pyproject.toml
+  requirements.txt
+  requirements-gpu-cu118.txt
+  environment.yml
+  .env.example
+  coordinate_calibration_identity.json
+  docs/
+    GITHUB_DEPLOY.md
+    SIMULATOR_BRIDGE_README.md
+  examples/
+    scene_package.example.json
+  scripts/
+    check_environment.py
+  src/gs_carla/
+    *.py
+  assets/local/      # 本机数据，不上传 GitHub
+  outputs/           # 运行输出，不上传 GitHub
 ```
 
-已经生成的文件包括：
+## 不要上传到 GitHub 的内容
 
-```text
-background_gaussians.pth
-sky_envlight.pth
-metadata.json
-background_preview_500k.ply
-frame000_cam0_points.png
-frame000_cam0_overlay.png
-```
+仓库只应该提交代码、文档、依赖清单、小型 JSON 模板和默认标定文件。下面这些内容不要提交：
 
-在可访问 CUDA GPU 的 session 中运行真实 gsplat 命令后，会生成：
+- 原始采集数据：`data/`、`datasets/`
+- DriveStudio checkpoint：`*.pth`、`*.pt`、`*.ckpt`
+- 导出的 3DGS 资产：`background_gaussians.pth`、`sky_envlight.pth`、`*.ply`
+- CARLA/实验输出：`work_dirs/`、`outputs/`、`results/`、`runs/`
+- 图片和视频：`*.png`、`*.jpg`、`*.mp4`、`*.avi`
+- 本机路径配置：`.env`、`*.local.json`
 
-```text
-frame000_cam0_gsplat.png
-frame000_cam0_gsplat_overlay.png
-```
+这些规则已经写入 `.gitignore`。如果大文件已经被 Git 跟踪，需要用 `git rm --cached path/to/file` 从索引移除，本机文件不会被删除。
 
-## 使用过的命令
+## 环境安装
 
-导出背景 Gaussians：
+推荐使用 conda：
 
 ```bash
- python Tools/gs_carla/export_drivestudio_background.py \
-  --checkpoint PythonAPI/examples/drivestudio_clear/work_dirs/000_6cams_omnire_ext/checkpoint_final.pth \
-  --config PythonAPI/examples/drivestudio_clear/work_dirs/000_6cams_omnire_ext/config.yaml \
-  --processed-scene PythonAPI/examples/drivestudio_clear/data/classlab/processed/2025-07-17-17-33-26 \
-  --output-dir PythonAPI/examples/drivestudio_clear/work_dirs/background_only_demo \
-  --ply PythonAPI/examples/drivestudio_clear/work_dirs/background_only_demo/background_preview_500k.ply \
-  --ply-max-points 500000
+conda env create -f environment.yml
+conda activate 3dgs-carla
+pip install -e .
 ```
 
-渲染粗略点投影 overlay：
+如果不用 conda：
 
 ```bash
-  /home/classlab/anaconda3/envs/gussian-sim/bin/python \
-  Tools/gs_carla/render_background_point_demo.py \
-  --background PythonAPI/examples/drivestudio_clear/work_dirs/background_only_demo/background_gaussians.pth \
-  --processed-scene PythonAPI/examples/drivestudio_clear/data/classlab/processed/2025-07-17-17-33-26 \
-  --frame 0 \
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+pip install -r requirements-gpu-cu118.txt
+pip install -e .
+```
+
+还需要单独准备 CARLA PythonAPI。复制 `.env.example` 为 `.env` 后按本机路径修改，或直接在 shell 里设置：
+
+```bash
+export CARLA_ROOT=/path/to/CARLA_0.9.15
+export PYTHONPATH="$PYTHONPATH:$CARLA_ROOT/PythonAPI/carla/dist/carla-0.9.15-py3.10-linux-x86_64.egg"
+```
+
+检查环境：
+
+```bash
+python scripts/check_environment.py
+```
+
+`torch.cuda.is_available()` 必须为 `True`，否则 `gsplat` 真实渲染不能运行。
+
+## 本机资产处理
+
+建议把所有数据放在被 `.gitignore` 排除的 `assets/local/` 下：
+
+```text
+assets/local/
+  maps/
+    classlab_mapping_pose_semantic_4lane.xodr
+  3dgs/
+    background_gaussians.pth
+    sky_envlight.pth
+  processed/
+    2025-07-17-17-33-26/
+  raw/
+    2025-07-17-17-33-26/
+  instances/
+    instances_info.json
+  roadlane_tracking/
+    corrected_pose_enu.csv
+```
+
+然后复制示例 package：
+
+```bash
+cp examples/scene_package.example.json assets/local/scene_package.local.json
+```
+
+修改 `assets/local/scene_package.local.json` 里的路径，使它指向本机 `.xodr`、processed scene、mapping pose、instances、background 和 sky 文件。`*.local.json` 不会上传 GitHub。
+
+## 部署运行
+
+1. 启动 CARLA server：
+
+```bash
+/path/to/CARLA_0.9.15/CarlaUE4.sh -RenderOffScreen
+```
+
+2. 生成 scene package，也可以直接使用已经改好的 `assets/local/scene_package.local.json`：
+
+```bash
+python -m gs_carla.make_3dgs_carla_scene_package \
+  --output assets/local/scene_package.local.json \
+  --name classlab_3dgs_carla \
+  --description "Local CARLA + DriveStudio 3DGS scene" \
+  --xodr assets/local/maps/classlab_mapping_pose_semantic_4lane.xodr \
+  --instances-info assets/local/instances/instances_info.json \
+  --instance-origin-sequence-frame 300 \
+  --instance-transform-mode mapping-absolute \
+  --background assets/local/3dgs/background_gaussians.pth \
+  --sky assets/local/3dgs/sky_envlight.pth \
+  --processed-scene assets/local/processed/2025-07-17-17-33-26 \
+  --mapping-pose assets/local/raw/2025-07-17-17-33-26/result/mapping/mapping_pose.txt \
   --camera 0 \
-  --output PythonAPI/examples/drivestudio_clear/work_dirs/background_only_demo/frame000_cam0_points.png \
-  --overlay-output PythonAPI/examples/drivestudio_clear/work_dirs/background_only_demo/frame000_cam0_overlay.png \
-  --max-points 1000000 \
-  --opacity-threshold 0.02 \
-  --far 200 \
-  --radius 1 \
-  --downscale 2
+  --sequence-origin-frame 0 \
+  --processed-origin-frame 0 \
+  --core-pose-csv assets/local/roadlane_tracking/corrected_pose_enu.csv
 ```
 
-真实 gsplat 背景渲染：
+3. 启动主 runtime：
 
 ```bash
-/home/classlab/anaconda3/envs/gussian-sim/bin/python \
-  Tools/gs_carla/render_background_gsplat.py \
-  --background PythonAPI/examples/drivestudio_clear/work_dirs/background_only_demo/background_gaussians.pth \
-  --sky PythonAPI/examples/drivestudio_clear/work_dirs/background_only_demo/sky_envlight.pth \
-  --processed-scene PythonAPI/examples/drivestudio_clear/data/classlab/processed/2025-07-17-17-33-26 \
-  --frame 0 \
-  --camera 0 \
-  --output PythonAPI/examples/drivestudio_clear/work_dirs/background_only_demo/frame000_cam0_gsplat.png \
-  --overlay-output PythonAPI/examples/drivestudio_clear/work_dirs/background_only_demo/frame000_cam0_gsplat_overlay.png \
-  --sky-output PythonAPI/examples/drivestudio_clear/work_dirs/background_only_demo/frame000_cam0_sky.png \
-  --max-gaussians 10000000 \
-  --opacity-threshold 0.02 \
-  --crop-radius 160 \
-  --far 220 \
-  --downscale 2
-```
-
-当前 shell 里如果 `torch.cuda.is_available()` 为 `False`，该命令会直接报错。真实出图需要在可访问 GPU 的 session 中运行。
-
-CARLA hero pose 到 GS background 的桥接渲染：
-
-```bash
-/home/classlab/anaconda3/envs/gussian-sim/bin/python \
-  Tools/gs_carla/carla_background_gs_bridge.py \
+python -m gs_carla.carla_3dgs_scene_runtime \
+  --scene-package assets/local/scene_package.local.json \
   --host 127.0.0.1 \
   --port 2000 \
-  --xodr singapore_onenorth.xodr \
-  --background PythonAPI/examples/drivestudio_clear/work_dirs/background_only_demo/background_gaussians.pth \
-  --sky PythonAPI/examples/drivestudio_clear/work_dirs/background_only_demo/sky_envlight.pth \
-  --calibration Tools/gs_carla/coordinate_calibration_identity.json \
-  --output PythonAPI/examples/drivestudio_clear/work_dirs/background_only_demo/carla_hero_background.png \
-  --width 960 \
-  --height 540 \
-  --fx 900 \
-  --fy 900 \
+  --start-frame 315 \
+  --end-frame 360 \
+  --output-dir outputs/runtime_demo \
+  --pygame \
+  --downscale 3 \
   --max-gaussians 800000 \
   --crop-radius 160
 ```
 
-这个命令要求 CARLA server 已经在 `--host/--port` 运行，并且 world 里已经有一个 `role_name=hero` 的 vehicle。`coordinate_calibration_identity.json` 只是占位；真实对齐前，画面位置大概率不正确。
+4. 另开一个终端发送控制：
 
-## 坐标说明
-
-DriveStudio 使用以第一帧前视相机为基准对齐的 local world。对于当前这个 ClassLab / NuScenes 风格的数据加载器，相机位姿和实例位姿会按照下面方式变换：
-
-```python
-local_pose = inv(extrinsics/000_0.txt) @ raw_pose
+```bash
+python -m gs_carla.pose_control_client \
+  --host 127.0.0.1 \
+  --port 25000
 ```
 
-导出的背景 Gaussians 已经位于这个 DriveStudio local world 中。点投影 demo 在投影前也使用相同的变换方式。
+所有工具都可以用 `python -m gs_carla.<module_name> --help` 查看参数。
 
-CARLA bridge 使用下面的 pose 链：
+## 常用模块
 
-```python
-T_drivestudio_from_camera_opencv =
-    T_drivestudio_from_carla
-    @ T_carla_from_hero
-    @ T_hero_from_camera_sensor
-    @ T_carla_sensor_from_opencv_camera
+- `gs_carla.export_drivestudio_background`：从 DriveStudio checkpoint 导出 `background_gaussians.pth` 和 `sky_envlight.pth`
+- `gs_carla.render_background_gsplat`：用 `gsplat` 渲染 3DGS 背景和天空
+- `gs_carla.make_3dgs_carla_scene_package`：生成统一 scene package JSON
+- `gs_carla.carla_3dgs_scene_runtime`：主仿真 runtime
+- `gs_carla.scene_runtime_external_control`：CARLA + 3DGS + traffic + external control runtime
+- `gs_carla.pose_control_client`：外部控制客户端
+- `gs_carla.traffic_bbox_projection_from_package`：traffic bbox 输出和投影工具
+
+## 发布前检查
+
+```bash
+git status --short
+git check-ignore -v assets/local/3dgs/background_gaussians.pth
+python scripts/check_environment.py
+python -m compileall -q src scripts
 ```
 
-其中 `T_carla_sensor_from_opencv_camera` 把 OpenCV camera 坐标约定转换到 CARLA sensor local 坐标：OpenCV `x=right, y=down, z=forward`，CARLA sensor local `x=forward, y=right, z=up`。真正需要标定的是 `T_drivestudio_from_carla`。
-
-## Sky 说明
-
-当前 checkpoint 的 `Sky` 不是 Gaussian，也不是普通 equirectangular 图片，而是 DriveStudio `EnvLight` cubemap：
-
-```text
-models["Sky"]["base"]: [6, 1024, 1024, 3]
-```
-
-导出脚本会把它保存成 `sky_envlight.pth`。渲染脚本会根据相机内参和 `camera_to_world` 生成每个像素的 world-space ray direction，然后近似复现 DriveStudio 中的方向变换：
-
-```python
-viewdir_opengl = viewdir_world @ [[1,0,0], [0,0,1], [0,-1,0]].T
-```
-
-随后按 cubemap face 做双线性采样。这里没有依赖 `nvdiffrast`，所以 face orientation 是按 OpenGL cubemap 约定近似实现的；如果天空方向看起来左右/上下不对，优先调试 cubemap face 映射，而不是 GS 坐标。
-
-## 当前验证结果
-
-点投影结果不是空的，并且覆盖了约 81% 的降采样前视相机像素。overlay 图像在道路、树木和建筑物区域上具有较好的视觉对齐效果，因此可以初步认为 DriveStudio 背景坐标和已处理相机位姿大致一致。
-
-`gussian-sim` 环境中已经可以 import `gsplat`，脚本语法检查也通过。但当前执行会话没有 CUDA runtime，`torch.cuda.is_available()` 为 `False`，因此真实 gsplat rasterization 无法在这里实际出图。换到能访问 GPU 的 shell 后，可以直接运行上面的真实 gsplat 命令。
-
-## 下一步工作
-
-1. 在可访问 GPU 的 session 中运行 `render_background_gsplat.py`，生成 `frame000_cam0_gsplat.png`。
-2. 调整 `max-gaussians`、`crop-radius`、`opacity-threshold`，找到可接受的显存和画质折中。
-3. 用 CARLA 的 OpenDRIVE world 和 processed ego 轨迹估计 `T_drivestudio_from_carla`。
-4. 跑 `carla_background_gs_bridge.py`，确认 CARLA hero camera 与 background GS 的道路方向和尺度一致。
-5. 背景稳定后，再加入 RigidNodes，并用 CARLA actor pose 覆盖 DriveStudio replay pose。
+确认 `git status` 中没有数据、权重、图片、视频、`.env` 或 `*.local.json`。

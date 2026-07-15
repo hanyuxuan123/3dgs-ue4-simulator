@@ -27,7 +27,7 @@ import numpy as np
 from PIL import Image
 from scipy.spatial.transform import Rotation, Slerp
 
-from render_background_gsplat import (
+from .render_background_gsplat import (
     Profiler,
     load_background,
     load_intrinsics_from_processed,

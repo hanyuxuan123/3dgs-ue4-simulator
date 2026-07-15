@@ -1,0 +1,13 @@
+name: 3dgs-carla
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pip
+  - numpy
+  - pillow
+  - scipy
+  - pip:
+      - -e .
+      - -r requirements.txt
+      - -r requirements-gpu-cu118.txt

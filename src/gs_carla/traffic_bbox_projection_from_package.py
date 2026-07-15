@@ -13,8 +13,8 @@ from typing import Any
 
 import numpy as np
 
-import carla_xodr_live_3dgs_bridge_with_instances as base
-from load_xodr_town_with_instances import (
+from . import carla_xodr_live_3dgs_bridge_with_instances as base
+from .load_xodr_town_with_instances import (
     carla_pose_from_instance_matrix,
     load_instance_tracks,
     make_instance_transform,
@@ -23,8 +23,8 @@ from load_xodr_town_with_instances import (
     update_instance_actors,
     write_instance_csv,
 )
-from render_aligned_mapping_or_carla_path_gsplat import mapping_pose_matrix, read_mapping_poses, transform_from_xyz_rpy
-from render_background_gsplat import load_intrinsics_from_processed
+from .render_aligned_mapping_or_carla_path_gsplat import mapping_pose_matrix, read_mapping_poses, transform_from_xyz_rpy
+from .render_background_gsplat import load_intrinsics_from_processed
 
 
 def parse_args() -> argparse.Namespace:
