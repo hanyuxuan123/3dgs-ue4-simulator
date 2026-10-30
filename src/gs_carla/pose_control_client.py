@@ -129,9 +129,7 @@ class Controller:
         if bool(observation.get("path_finished", False)):
             return True
         nearest_index = int(observation["nearest_index"])
-        source_frame = int(observation["source_frame"])
-        last_frame = int(self.core_poses[-1]["frame"])
-        return nearest_index >= len(self.core_poses) - 1 or source_frame >= last_frame
+        return nearest_index >= len(self.core_poses) - 1
 
     def control(self, observation: dict) -> dict[str, float]:
         if self.reached_path_end(observation):
@@ -194,7 +192,8 @@ def main() -> int:
                 reached_end = controller.reached_path_end(observation)
                 status = " stopping-at-end" if reached_end else ""
                 print(
-                    f"[pose-control] step={observation['step']} frame={observation['source_frame']} "
+                    f"[pose-control] step={observation['step']} actor_frame={observation.get('actor_progress_frame')} "
+                    f"source_frame={observation['source_frame']} "
                     f"steer={command['steer']:.3f} throttle={command['throttle']:.3f} "
                     f"brake={command['brake']:.3f}{status}"
                 )

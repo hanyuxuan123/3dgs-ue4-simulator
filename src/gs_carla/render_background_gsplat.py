@@ -247,6 +247,98 @@ def load_background(path: Path, device: torch.device) -> dict[str, torch.Tensor]
     }
 
 
+def load_rigid_nodes(path: Path | None, device: torch.device) -> dict[str, torch.Tensor] | None:
+    if path is None or not path.exists():
+        return None
+    try:
+        data = torch.load(path, map_location="cpu", weights_only=True)
+    except TypeError:
+        data = torch.load(path, map_location="cpu")
+    rigid = {
+        "means": data["means"].float().to(device),
+        "scales": torch.exp(data["scales_log"].float()).to(device),
+        "quats": torch.nn.functional.normalize(data["quats_raw"].float(), dim=-1).to(device),
+        "opacities": torch.sigmoid(data["opacities_logit"].float()).squeeze(-1).to(device),
+        "colors": torch.cat([data["features_dc"].float()[:, None, :], data["features_rest"].float()], dim=1).to(device),
+        "point_ids": data["point_ids"].long().squeeze(-1).to(device),
+        "instances_quats": torch.nn.functional.normalize(data["instances_quats"].float(), dim=-1).to(device),
+        "instances_trans": data["instances_trans"].float().to(device),
+        "instances_fv": data["instances_fv"].bool().to(device),
+    }
+    print(
+        f"Loaded RigidNodes dynamic gaussians: points={rigid['means'].shape[0]} "
+        f"frames={rigid['instances_fv'].shape[0]} instances={rigid['instances_fv'].shape[1]} from {path}"
+    )
+    return rigid
+
+
+def quat_mult(q1: torch.Tensor, q2: torch.Tensor) -> torch.Tensor:
+    w1, x1, y1, z1 = q1.unbind(-1)
+    w2, x2, y2, z2 = q2.unbind(-1)
+    return torch.stack(
+        [
+            w1 * w2 - x1 * x2 - y1 * y2 - z1 * z2,
+            w1 * x2 + x1 * w2 + y1 * z2 - z1 * y2,
+            w1 * y2 - x1 * z2 + y1 * w2 + z1 * x2,
+            w1 * z2 + x1 * y2 - y1 * x2 + z1 * w2,
+        ],
+        dim=-1,
+    )
+
+
+def quat_to_rotmat(q: torch.Tensor) -> torch.Tensor:
+    q = torch.nn.functional.normalize(q, dim=-1)
+    w, x, y, z = q.unbind(-1)
+    two = 2.0
+    return torch.stack(
+        [
+            1 - two * (y * y + z * z),
+            two * (x * y - z * w),
+            two * (x * z + y * w),
+            two * (x * y + z * w),
+            1 - two * (x * x + z * z),
+            two * (y * z - x * w),
+            two * (x * z - y * w),
+            two * (y * z + x * w),
+            1 - two * (x * x + y * y),
+        ],
+        dim=-1,
+    ).reshape(q.shape[:-1] + (3, 3))
+
+
+def rigid_nodes_for_frame(
+    rigid: dict[str, torch.Tensor] | None,
+    frame_index: int,
+) -> dict[str, torch.Tensor] | None:
+    if rigid is None:
+        return None
+    frame = max(0, min(int(frame_index), int(rigid["instances_fv"].shape[0]) - 1))
+    point_ids = rigid["point_ids"]
+    valid = rigid["instances_fv"][frame, point_ids]
+    if not valid.any():
+        return None
+    ids = point_ids[valid]
+    inst_quats = rigid["instances_quats"][frame, ids]
+    inst_trans = rigid["instances_trans"][frame, ids]
+    means_local = rigid["means"][valid]
+    rot = quat_to_rotmat(inst_quats)
+    means = torch.bmm(rot, means_local.unsqueeze(-1)).squeeze(-1) + inst_trans
+    quats = torch.nn.functional.normalize(quat_mult(inst_quats, rigid["quats"][valid]), dim=-1)
+    return {
+        "means": means,
+        "scales": rigid["scales"][valid],
+        "quats": quats,
+        "opacities": rigid["opacities"][valid],
+        "colors": rigid["colors"][valid],
+    }
+
+
+def concat_gaussians(base: dict[str, torch.Tensor], extra: dict[str, torch.Tensor] | None) -> dict[str, torch.Tensor]:
+    if extra is None:
+        return base
+    return {key: torch.cat([base[key], extra[key]], dim=0) for key in ("means", "scales", "quats", "opacities", "colors")}
+
+
 def load_sky(path: Path | None, device: torch.device) -> torch.Tensor | None:
     if path is None:
         return None

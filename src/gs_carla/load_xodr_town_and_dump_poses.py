@@ -307,7 +307,7 @@ def core_row_to_carla_pose(args: argparse.Namespace, row: dict, origin: dict[str
         "frame": frame,
         "x": carla_x,
         "y": carla_y,
-        "z": args.core_pose_z,
+        "z": float(row.get("z", args.core_pose_z)) if args.core_pose_coordinate_frame == "carla" else args.core_pose_z,
         "roll": 0.0,
         "pitch": 0.0,
         "yaw": carla_yaw,

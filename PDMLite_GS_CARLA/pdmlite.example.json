@@ -1,0 +1,6 @@
+{
+  "backend_entrypoint": "your_pdmlite_package.carla_backend:create_backend",
+  "backend_kwargs": {
+    "checkpoint": "/absolute/path/to/pdmlite_checkpoint.pth"
+  }
+}

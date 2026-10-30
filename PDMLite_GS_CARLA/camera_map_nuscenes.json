@@ -1,0 +1,8 @@
+{
+  "CAM_FRONT": 0,
+  "CAM_FRONT_LEFT": 1,
+  "CAM_FRONT_RIGHT": 2,
+  "CAM_BACK": 5,
+  "CAM_BACK_LEFT": 3,
+  "CAM_BACK_RIGHT": 4
+}

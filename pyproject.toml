@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gs-carla"
-version = "0.1.0"
-description = "CARLA + DriveStudio 3D Gaussian Splatting bridge tools"
+version = "0.2.0"
+description = "Unified nuScenes and ClassLab 3D Gaussian Splatting + CARLA simulator"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
